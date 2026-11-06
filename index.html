@@ -6,11 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#16181b">
-<title>Тест Диксона — восстановление пульса</title>
+<title>Стресс-тест: восстановление пульса</title>
 <style>
   :root{
     --bg:#16181b; --panel:#202328; --panel2:#2a2e34; --line:#3a3f47;
-    --text:#f2f4f7; --muted:#9aa2ad; --lime:#b6f23a; --red:#ff4d4f;
+    --text:#f2f4f7; --muted:#9aa2ad; --lime:#b6f23a; --amber:#ffb020; --red:#ff4d4f; --blue:#5aa9ff;
   }
   *{ -webkit-tap-highlight-color:transparent; box-sizing:border-box; margin:0; padding:0; }
   html{ background:#16181b; -webkit-text-size-adjust:100%; text-size-adjust:100%; }
@@ -27,9 +27,18 @@
   button, input{ font-family:inherit; }
   .wrap{ max-width:520px; margin:0 auto; padding:16px; }
   .mono{ font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace; font-variant-numeric:tabular-nums; }
+  .hidden{ display:none !important; }
 
-  header{ margin-bottom:16px; }
+  header{ margin-bottom:14px; }
   h1{ font-size:24px; font-weight:700; line-height:1.2; margin-top:4px; }
+
+  /* вкладки */
+  .tabs{ display:flex; gap:6px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:4px; margin-bottom:16px; }
+  .tab{
+    flex:1; border:0; background:transparent; color:var(--muted); font-size:15px; font-weight:600;
+    padding:11px 8px; border-radius:10px; cursor:pointer; -webkit-appearance:none; appearance:none;
+  }
+  .tab.active{ background:var(--lime); color:#10130a; }
 
   .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:16px; }
   .label{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
@@ -47,9 +56,12 @@
     -webkit-appearance:none; appearance:none; text-align:center;
   }
   .btn:active{ transform:scale(.98); opacity:.85; }
+  .btn:disabled{ opacity:.55; }
   .btn-ghost{ background:var(--panel2); color:var(--text); border:1px solid var(--line); font-weight:600; }
+  .btn-sm{ font-size:15px; padding:14px; }
   .btn-demo{ font-size:15px; padding:13px; margin-top:12px; }
-  .btn-back{ margin-top:0; }
+  .btn-row{ display:flex; gap:10px; margin-bottom:16px; }
+  .btn-row .btn{ flex:1; min-width:0; }
 
   .step{
     width:60px; height:60px; border-radius:16px; border:1px solid var(--line);
@@ -59,6 +71,11 @@
   }
   .step:active{ background:var(--lime); color:#10130a; }
   .step:disabled{ opacity:.3; }
+
+  .rest-row{ display:flex; align-items:center; gap:14px; }
+  .rest-row .txt{ flex:1; min-width:0; }
+  .rest-row .txt .sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .rest-row .inp{ flex:none; width:120px; }
 
   .cols{ display:flex; align-items:center; gap:12px; padding:0 4px; margin-bottom:8px; }
   .cols .sp{ width:34px; flex:none; }
@@ -82,38 +99,142 @@
   .err{ color:var(--red); font-size:14px; min-height:20px; text-align:center; margin-bottom:8px; }
   .note{ font-size:12px; text-align:center; color:var(--muted); margin-top:16px; }
 
+  /* спортивный вердикт */
+  .sport{ border-radius:18px; padding:18px 16px; margin-bottom:16px; border:1px solid; }
+  .sport .tag{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; margin-bottom:8px; }
+  .sport .big{ font-size:22px; line-height:1.3; font-weight:700; color:var(--text); }
+  .sport .extra{ margin-top:12px; padding-top:12px; border-top:1px dashed rgba(255,255,255,.2); font-size:16px; line-height:1.4; font-weight:600; color:#ff8a8c; }
+  .sport .ri{ display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }
+  .sport .ri b{ font-size:44px; line-height:1; font-weight:800; }
+  .sport .ri span{ font-size:13px; color:var(--muted); }
+  .s-good{ background:rgba(182,242,58,.1); border-color:rgba(182,242,58,.5); }
+  .s-good .tag, .s-good .ri b{ color:var(--lime); }
+  .s-mid{ background:rgba(255,176,32,.1); border-color:rgba(255,176,32,.5); }
+  .s-mid .tag, .s-mid .ri b{ color:var(--amber); }
+  .s-bad{ background:rgba(255,77,79,.1); border-color:rgba(255,77,79,.5); }
+  .s-bad .tag, .s-bad .ri b{ color:var(--red); }
+
+  /* адаптация */
+  .adapt{ border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid; }
+  .adapt .a-title{ font-size:20px; font-weight:800; line-height:1.25; }
+  .adapt .a-text{ font-size:14px; color:var(--text); margin-top:6px; line-height:1.45; }
+  .adapt .a-rows{ margin-top:12px; padding-top:10px; border-top:1px dashed rgba(255,255,255,.18); }
+  .a-row{ display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:4px 0; color:var(--muted); }
+  .a-row b{ color:var(--text); font-weight:600; text-align:right; }
+  .adapt.s-good .a-title{ color:var(--lime); }
+  .adapt.s-mid .a-title{ color:var(--amber); }
+  .adapt.s-bad .a-title{ color:var(--red); }
+
+  .stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:8px; }
+  .stat{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 6px; text-align:center; min-width:0; }
+  .stat b{ display:block; font-size:22px; font-weight:700; margin-top:4px; }
+  .stat .label{ font-size:10px; letter-spacing:.04em; }
+  .stat small{ display:block; font-size:10px; color:var(--muted); margin-top:2px; }
+  .stats-note{ font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.4; }
+
   table{ width:100%; border-collapse:collapse; font-size:14px; }
   th{ text-align:left; color:var(--muted); font-weight:500; font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:6px 4px; border-bottom:1px solid var(--line); }
   td{ padding:10px 4px; border-bottom:1px solid var(--line); }
   tr:last-child td{ border-bottom:0; }
   .badge{ display:inline-block; padding:2px 8px; border-radius:99px; font-size:12px; font-weight:700; }
   .b-ok{ background:rgba(182,242,58,.15); color:var(--lime); }
+  .b-mid{ background:rgba(255,176,32,.16); color:var(--amber); }
   .b-bad{ background:rgba(255,77,79,.18); color:var(--red); }
 
-  .verdict{ border-radius:14px; padding:14px 16px; font-size:16px; line-height:1.4; font-weight:500; margin-bottom:16px; }
+  .dixon-v{ border-radius:12px; padding:12px 14px; font-size:14px; line-height:1.4; margin-top:14px; }
   .v-ok{ background:rgba(182,242,58,.1); border:1px solid rgba(182,242,58,.4); color:var(--lime); }
   .v-bad{ background:rgba(255,77,79,.1); border:1px solid rgba(255,77,79,.45); color:#ff8a8c; }
 
-  canvas{ width:100%; height:270px; display:block; }
-  .legend{ display:flex; gap:16px; margin-top:8px; font-size:12px; color:var(--muted); }
-  .legend span{ display:flex; align-items:center; gap:4px; }
+  canvas{ width:100%; height:300px; display:block; }
+  .legend{ display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:10px; font-size:12px; color:var(--muted); }
+  .legend span{ display:flex; align-items:center; gap:5px; }
   .legend i{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .legend i.dash{ width:14px; height:0; border-radius:0; border-top:2px dashed var(--blue); }
+  .legend i.band{ width:12px; height:10px; border-radius:2px; background:rgba(255,77,79,.3); }
   .qinfo{ font-size:14px; color:var(--muted); margin-bottom:12px; }
   .qinfo b{ color:var(--text); font-weight:400; }
   .sorted{ font-size:12px; color:var(--muted); margin-top:12px; word-break:break-word; }
-  .hidden{ display:none !important; }
+
+  /* история */
+  .h-item{ display:flex; align-items:stretch; gap:8px; margin-bottom:10px; }
+  .h-main{
+    flex:1; min-width:0; text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:14px; color:var(--text); cursor:pointer; -webkit-appearance:none; appearance:none;
+  }
+  .h-main:active{ background:var(--panel2); }
+  .h-top{ display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; }
+  .h-date{ font-size:13px; color:var(--muted); }
+  .h-idx{ font-size:26px; font-weight:800; }
+  .h-sub{ font-size:13px; color:var(--muted); margin-top:6px; }
+  .h-del{
+    width:48px; flex:none; border-radius:14px; border:1px solid var(--line); background:var(--panel2);
+    color:var(--red); font-size:22px; cursor:pointer; -webkit-appearance:none; appearance:none;
+  }
+  .h-del:active{ background:rgba(255,77,79,.2); }
+  .empty{ text-align:center; color:var(--muted); padding:40px 16px; font-size:15px; }
+  .toast{
+    position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom) + 24px);
+    background:var(--text); color:#10130a; padding:12px 18px; border-radius:99px; font-size:14px; font-weight:600;
+    opacity:0; pointer-events:none; transition:opacity .2s; z-index:50; max-width:90%; text-align:center;
+  }
+  .toast.show{ opacity:1; }
+
+  /* сравнение тестов */
+  .h-check{
+    width:44px; flex:none; border-radius:14px; border:1px solid var(--line); background:var(--panel2);
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    -webkit-appearance:none; appearance:none; transition:transform .1s;
+  }
+  .h-check:active{ transform:scale(.94); }
+  .h-check i{
+    width:22px; height:22px; border-radius:50%; border:2px solid var(--line); display:flex;
+    align-items:center; justify-content:center; font-style:normal; font-size:14px; color:transparent;
+  }
+  .h-check.on{ border-color:var(--lime); background:rgba(182,242,58,.14); }
+  .h-check.on i{ background:var(--lime); border-color:var(--lime); color:#10130a; }
+  #screenHistory{ padding-bottom:92px; }
+  .cmp-bar{
+    position:fixed; left:0; right:0; bottom:0; z-index:40;
+    padding:12px 16px calc(env(safe-area-inset-bottom) + 12px);
+    background:rgba(22,24,27,.94); border-top:1px solid var(--line);
+    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  }
+  .cmp-bar .in{ max-width:520px; margin:0 auto; display:flex; align-items:center; gap:12px; }
+  .cmp-bar .txt{ flex:1; min-width:0; font-size:13px; color:var(--muted); }
+  .cmp-bar .btn{ width:auto; padding:13px 22px; font-size:16px; white-space:nowrap; }
+  #cmpChart{ height:280px; }
+  #diffChart{ height:180px; }
+  .d-up{ color:var(--lime); font-weight:700; }
+  .d-down{ color:var(--red); font-weight:700; }
+  .d-flat{ color:var(--muted); }
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <header>
-    <div class="label">Тест Диксона · p = 0.05</div>
-    <h1>Анализ восстановления пульса</h1>
+    <div class="label">Стресс-тест · тест Диксона p = 0.05</div>
+    <h1>Адаптация сердечно-сосудистой системы</h1>
   </header>
+
+  <nav class="tabs">
+    <button class="tab active" id="tabAnalysis">Тест</button>
+    <button class="tab" id="tabHistory">История</button>
+  </nav>
 
   <!-- ЭКРАН ВВОДА -->
   <section id="screenInput">
+
+    <div class="card">
+      <div class="rest-row">
+        <div class="txt">
+          <div class="label">Пульс в покое</div>
+          <div class="sub">До начала теста, уд/мин (30–130)</div>
+        </div>
+        <input id="restInp" class="inp mono" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" placeholder="—" autocomplete="off" aria-label="Пульс в покое">
+      </div>
+    </div>
+
     <div class="card">
       <div class="label mb">Количество забегов (3–15)</div>
       <div class="counter">
@@ -134,62 +255,158 @@
     <div id="errBox" class="err"></div>
     <button id="btnAnalyze" class="btn">Анализировать</button>
     <button id="btnDemo" class="btn btn-ghost btn-demo">Заполнить примером</button>
-    <p class="note">Допустимые значения пульса: от 40 до 250. «Пик» не может быть ниже «Отдыха».</p>
+    <p class="note">Пульс забега: от 40 до 250. «Пик» не может быть ниже «Отдыха» и ниже пульса в покое.</p>
   </section>
 
   <!-- ЭКРАН РЕЗУЛЬТАТОВ -->
   <section id="screenResult" class="hidden">
+
+    <div id="sport" class="sport"></div>
+
+    <div id="adapt" class="adapt"></div>
+
     <div class="card">
-      <div class="label mb-xs">Падение пульса по забегам</div>
-      <div class="hint">Пик − Отдых, уд/мин. Выше — лучше восстановление.</div>
+      <div class="label mb-xs">Пик и восстановление по забегам</div>
+      <div class="hint">Плато красной линии — предел нагрузки. Если лаймовая линия ползёт вверх — организм не успевает восстанавливаться.</div>
       <canvas id="chart"></canvas>
       <div class="legend">
-        <span><i style="background:#b6f23a"></i>норма</span>
-        <span><i style="background:#ff4d4f"></i>выброс</span>
+        <span><i style="background:#ff4d4f"></i>пиковый пульс</span>
+        <span><i style="background:#b6f23a"></i>пульс восстановления</span>
+        <span><i class="dash"></i>покой</span>
+        <span><i class="band"></i>выброс падения</span>
       </div>
     </div>
 
-    <div id="verdict" class="verdict"></div>
+    <div class="stats">
+      <div class="stat"><div class="label">Ср. пик</div><b class="mono" id="stPeak"></b></div>
+      <div class="stat"><div class="label">Ср. отдых</div><b class="mono" id="stRest"></b></div>
+      <div class="stat"><div class="label">Ср. падение</div><b class="mono" id="stDrop"></b></div>
+      <div class="stat"><div class="label">TRIMP</div><b class="mono" id="stTrimp"></b></div>
+      <div class="stat"><div class="label">CV падения</div><b class="mono" id="stCv"></b><small id="stCvTxt"></small></div>
+      <div class="stat"><div class="label">Покой</div><b class="mono" id="stHr0"></b></div>
+    </div>
+    <div class="stats-note">TRIMP (упрощённый) = Σ (Пик − Пульс в покое) по всем забегам: длительность не вводится, поэтому это относительная мера общей нагрузки. CV = стандартное отклонение падений / среднее × 100%.</div>
+
+    <div class="btn-row">
+      <button id="btnSave" class="btn btn-sm">Сохранить тест</button>
+      <button id="btnShare" class="btn btn-sm btn-ghost">Поделиться</button>
+    </div>
 
     <div class="card">
-      <div class="label mb-s">Q-критерий Диксона</div>
+      <div class="label mb-s">Q-критерий Диксона (по падениям)</div>
       <div class="qinfo">
         N = <b id="rN" class="mono"></b> ·
         Q<sub>крит</sub> (p=0.05) = <b id="rQc" class="mono"></b>
       </div>
       <table>
-        <thead><tr><th>Проверка</th><th>Значение</th><th>Q</th><th>Итог</th></tr></thead>
+        <thead><tr><th>Проверка</th><th>Падение</th><th>Q</th><th>Итог</th></tr></thead>
         <tbody id="qBody"></tbody>
       </table>
       <div class="sorted mono" id="sortedLine"></div>
+      <div id="dixonV" class="dixon-v"></div>
     </div>
 
     <div class="card">
       <div class="label mb-s">Данные забегов</div>
       <table>
-        <thead><tr><th>№</th><th>Пик</th><th>Отдых</th><th>Падение</th></tr></thead>
+        <thead><tr><th>№</th><th>Пик</th><th>Отдых</th><th>Падение</th><th>Нагр.</th></tr></thead>
         <tbody id="dataBody"></tbody>
       </table>
     </div>
 
-    <button id="btnBack" class="btn btn-ghost btn-back">← Изменить данные</button>
+    <button id="btnBack" class="btn btn-ghost">← Изменить данные</button>
+  </section>
+
+  <!-- ЭКРАН ИСТОРИИ -->
+  <section id="screenHistory" class="hidden">
+    <div class="hint" style="margin-bottom:10px">Отметьте два теста галочками слева и нажмите «Сравнить»: так видно, улучшается ли восстановление от теста к тесту.</div>
+    <div id="histList"></div>
+    <button id="btnClear" class="btn btn-ghost btn-sm hidden">Очистить историю</button>
+  </section>
+
+  <!-- ЭКРАН СРАВНЕНИЯ -->
+  <section id="screenCompare" class="hidden">
+    <div id="cmpVerdict" class="adapt"></div>
+
+    <div class="card">
+      <div class="label mb-xs">Падение пульса: было и стало</div>
+      <div class="hint" id="cmpLegendTxt"></div>
+      <canvas id="cmpChart"></canvas>
+      <div class="legend">
+        <span><i style="background:#5aa9ff"></i><span id="lgA">Было</span></span>
+        <span><i style="background:#b6f23a"></i><span id="lgB">Стало</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label mb-xs">Разница по забегам (Стало − Было)</div>
+      <div class="hint">Выше нуля — падение стало больше, восстановление лучше. Ниже нуля — стало хуже.</div>
+      <canvas id="diffChart"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="label mb-s">Ключевые показатели</div>
+      <table>
+        <thead><tr><th>Показатель</th><th>Было</th><th>Стало</th><th>Δ</th></tr></thead>
+        <tbody id="cmpBody"></tbody>
+      </table>
+    </div>
+
+    <button id="btnCmpBack" class="btn btn-ghost">← К истории</button>
   </section>
 
 </div>
+<div id="cmpBar" class="cmp-bar hidden">
+  <div class="in">
+    <div class="txt" id="cmpHint">Выберите 2 теста</div>
+    <button id="btnCompare" class="btn" disabled>Сравнить</button>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
 
 <script>
 (function(){
-  const MIN_N = 3, MAX_N = 15, HR_MIN = 40, HR_MAX = 250;
+  const MIN_N = 3, MAX_N = 15, HR_MIN = 40, HR_MAX = 250, REST_MIN = 30, REST_MAX = 130;
+  const STORE_KEY = 'dixon_hr_history_v2';
+  const OLD_KEY = 'dixon_hr_history_v1';
+  const TREND_TH = 3;   // значимое изменение за серию, уд/мин
+
   // Критические значения Q (p = 0.05)
   const Q_CRIT = {3:0.970, 4:0.829, 5:0.710, 6:0.628, 7:0.569, 8:0.524, 9:0.492, 10:0.464};
   const qCrit = n => n <= 10 ? Q_CRIT[n] : 0.464;
 
   let count = 5;
+  let restHR = '';
   const peaks = new Array(MAX_N).fill('');
   const rests = new Array(MAX_N).fill('');
 
   const $ = id => document.getElementById(id);
   const runsEl = $('runs');
+
+  /* ---------- Навигация ---------- */
+  let current = null;
+  let savedId = null;
+  let lastAnalysisView = 'Input';
+
+  function show(screen){
+    if(screen === 'Input' || screen === 'Result') lastAnalysisView = screen;
+    ['Input','Result','History','Compare'].forEach(s => $('screen'+s).classList.toggle('hidden', s !== screen));
+    $('tabAnalysis').classList.toggle('active', screen !== 'History' && screen !== 'Compare');
+    $('tabHistory').classList.toggle('active', screen === 'History' || screen === 'Compare');
+    window.scrollTo(0, 0);
+    if(screen === 'Result') requestAnimationFrame(drawChart);
+    if(screen === 'Compare'){ requestAnimationFrame(drawCompare); requestAnimationFrame(drawDiff); }
+    if(screen === 'History') renderHistory();
+    updateCmpBar();
+  }
+  $('tabAnalysis').onclick = () => show(lastAnalysisView === 'Result' && current ? 'Result' : 'Input');
+  $('tabHistory').onclick = () => show('History');
+
+  let toastTimer;
+  function toast(msg){
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
 
   /* ---------- UI ввода ---------- */
   function renderRuns(){
@@ -206,7 +423,15 @@
     $('countVal').textContent = count;
     $('btnMinus').disabled = count <= MIN_N;
     $('btnPlus').disabled = count >= MAX_N;
+    $('restInp').value = restHR;
   }
+
+  $('restInp').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3);
+    restHR = e.target.value;
+    e.target.classList.remove('bad');
+    $('errBox').textContent = '';
+  });
 
   runsEl.addEventListener('input', e => {
     const t = e.target;
@@ -222,8 +447,9 @@
   $('btnPlus').onclick  = () => { if(count < MAX_N){ count++; renderRuns(); } };
 
   $('btnDemo').onclick = () => {
-    const demoP = [172,175,170,178,174,171,176,173,177,169,175,172,174,176,171];
-    const demoR = [128,130,126,150,129,127,131,128,132,125,130,127,129,131,126];
+    const demoP = [162,168,171,174,175,176,176,177,176,177,176,177,176,177,176];
+    const demoR = [128,130,132,136,138,141,142,145,146,148,149,150,151,152,153];
+    restHR = '58';
     for(let i = 0; i < MAX_N; i++){ peaks[i] = String(demoP[i]); rests[i] = String(demoR[i]); }
     renderRuns();
   };
@@ -231,8 +457,18 @@
   /* ---------- Валидация ---------- */
   function validate(){
     let firstBad = null, msg = '';
+    const rEl0 = $('restInp');
+    rEl0.classList.remove('bad');
     const inputs = runsEl.querySelectorAll('.inp');
     inputs.forEach(el => el.classList.remove('bad'));
+
+    const h0 = parseInt(restHR, 10);
+    const h0Ok = restHR !== '' && h0 >= REST_MIN && h0 <= REST_MAX;
+    if(!h0Ok){
+      rEl0.classList.add('bad'); firstBad = rEl0;
+      msg = `Пульс в покое должен быть от ${REST_MIN} до ${REST_MAX}`;
+    }
+
     for(let i = 0; i < count; i++){
       const pEl = inputs[i*2], rEl = inputs[i*2+1];
       const p = parseInt(peaks[i], 10), r = parseInt(rests[i], 10);
@@ -244,6 +480,10 @@
         pEl.classList.add('bad'); rEl.classList.add('bad');
         if(!firstBad){ firstBad = pEl; msg = `Забег ${i+1}: пульс отдыха выше пикового`; }
       }
+      if(pOk && h0Ok && p <= h0){
+        pEl.classList.add('bad');
+        if(!firstBad){ firstBad = pEl; msg = `Забег ${i+1}: пик должен быть выше пульса в покое`; }
+      }
     }
     if(firstBad){
       $('errBox').textContent = msg;
@@ -254,8 +494,8 @@
     return true;
   }
 
-  /* ---------- Тест Диксона ---------- */
-  // Применяется к массиву падений drops[i] = peak[i] - rest[i]
+  /* ---------- Математика ---------- */
+  // Тест Диксона применяется к массиву падений drops[i] = peak[i] - rest[i]
   function dixon(drops){
     const n = drops.length;
     const items = drops.map((v, i) => ({v, i})).sort((a, b) => a.v - b.v || a.i - b.i);
@@ -268,8 +508,7 @@
       qMin = (x[1] - x[0]) / range;
     }
     return {
-      n, crit, sorted: x, range,
-      qMax, qMin,
+      n, crit, sorted: x, range, qMax, qMin,
       maxOut: range > 0 && qMax > crit,
       minOut: range > 0 && qMin > crit,
       maxIdx: items[n-1].i, minIdx: items[0].i,
@@ -277,42 +516,156 @@
     };
   }
 
-  /* ---------- Анализ ---------- */
-  let current = null;
+  const avg = a => a.reduce((s, v) => s + v, 0) / a.length;
 
-  $('btnAnalyze').onclick = () => {
-    if(!validate()) return;
-    const P = [], R = [], D = [];
-    for(let i = 0; i < count; i++){
-      P.push(parseInt(peaks[i], 10));
-      R.push(parseInt(rests[i], 10));
-      D.push(P[i] - R[i]);              // Drop = Peak - Rest
+  function stdev(a){            // выборочное SD (n-1)
+    if(a.length < 2) return 0;
+    const m = avg(a);
+    return Math.sqrt(a.reduce((s, v) => s + (v - m) * (v - m), 0) / (a.length - 1));
+  }
+
+  // изменение показателя за всю серию по линейной регрессии: наклон × (n-1)
+  function trend(a){
+    const n = a.length;
+    const xm = (n - 1) / 2, ym = avg(a);
+    let num = 0, den = 0;
+    for(let i = 0; i < n; i++){ num += (i - xm) * (a[i] - ym); den += (i - xm) * (i - xm); }
+    return den ? (num / den) * (n - 1) : 0;
+  }
+
+  function sportVerdict(index){
+    if(index > 40) return {
+      level:'good', cls:'s-good',
+      text:'Отличное восстановление. Сердце быстро приходит в норму, вы в хорошей форме.'
+    };
+    if(index >= 20) return {
+      level:'mid', cls:'s-mid',
+      text:'Среднее восстановление. Организм справляется, но можно добавить легкие кардио-тренировки для улучшения.'
+    };
+    return {
+      level:'bad', cls:'s-bad',
+      text:'Плохое восстановление. Пульс падает слишком медленно. Возможно, вы перетренировались или не выспались. Нужен отдых.'
+    };
+  }
+
+  function adaptation(P, R, D){
+    const tP = trend(P), tR = trend(R), tD = trend(D);
+    const peakUp = tP >= TREND_TH;         // пики растут
+    const recUp = tR >= TREND_TH;          // пульс восстановления от забега к забегу выше
+    const dropDown = tD <= -TREND_TH;      // падения уменьшаются
+    let o;
+    if(recUp && (peakUp || dropDown)){
+      o = { level:'bad', cls:'s-bad', title:'Адаптация: Снижена',
+        text: peakUp
+          ? 'Пики растут, а пульс восстановления с каждым забегом выше: сердце не успевает восстанавливаться между нагрузками.'
+          : 'Пульс восстановления с каждым забегом выше, а падения уменьшаются: накапливается усталость.' };
+    } else if(!peakUp && !dropDown){
+      o = { level:'good', cls:'s-good', title:'Адаптация: Стабильная',
+        text:'Пики не растут, а падения пульса не уменьшаются: система выдерживает серию без накопления усталости.' };
+    } else if(peakUp){
+      o = { level:'mid', cls:'s-mid', title:'Адаптация: Промежуточная',
+        text:'Пики растут, но пульс восстановления не повышается: организм пока справляется с ростом нагрузки. Следите за динамикой.' };
+    } else {
+      o = { level:'mid', cls:'s-mid', title:'Адаптация: Промежуточная',
+        text:'Падения пульса уменьшаются, хотя пульс восстановления не растёт: пики снижаются быстрее. Возможно, вы сбавляете темп.' };
     }
-    const res = dixon(D);               // тест именно по падениям
+    o.tP = tP; o.tR = tR; o.tD = tD;
+    return o;
+  }
+
+  function cvLabel(cv){
+    if(cv <= 15) return 'стабильно';
+    if(cv <= 30) return 'умеренный разброс';
+    return 'высокий разброс';
+  }
+
+  function compute(hr0, P, R){
+    const D = P.map((p, i) => p - R[i]);        // Drop = Peak - Rest
+    const res = dixon(D);                        // тест по падениям
     const outliers = new Set();
     if(res.maxOut) outliers.add(res.maxIdx);
     if(res.minOut) outliers.add(res.minIdx);
-    current = {P, R, D, res, outliers};
+    const avgPeak = avg(P), avgRest = avg(R), avgDrop = avg(D);
+    const index = (avgPeak - avgRest) / avgPeak * 100;       // Recovery Index, %
+    const load = hr0 == null ? null : P.map(p => p - hr0);   // нагрузка: пик − покой
+    const trimp = load ? load.reduce((s, v) => s + v, 0) : null;
+    const cv = avgDrop > 0 ? stdev(D) / avgDrop * 100 : 0;
+    return {
+      hr0, P, R, D, res, outliers, avgPeak, avgRest, avgDrop, index, load, trimp, cv,
+      verdict: sportVerdict(index),
+      adapt: adaptation(P, R, D)
+    };
+  }
+
+  function anomalyNote(c){
+    const idx = [...c.outliers].sort((a, b) => a - b).map(i => i + 1);
+    if(!idx.length) return '';
+    if(idx.length === 1) return `Но обратите внимание на забег №${idx[0]} — там был аномальный скачок.`;
+    return `Но обратите внимание на забеги №${idx.join(' и №')} — там были аномальные скачки.`;
+  }
+
+  /* ---------- Анализ ---------- */
+  $('btnAnalyze').onclick = () => {
+    if(!validate()) return;
+    const P = [], R = [];
+    for(let i = 0; i < count; i++){
+      P.push(parseInt(peaks[i], 10));
+      R.push(parseInt(rests[i], 10));
+    }
+    current = compute(parseInt(restHR, 10), P, R);
+    savedId = null;
     showResults();
   };
 
-  $('btnBack').onclick = () => {
-    $('screenResult').classList.add('hidden');
-    $('screenInput').classList.remove('hidden');
-    window.scrollTo(0, 0);
-  };
+  $('btnBack').onclick = () => show('Input');
 
   const fmt = q => q.toFixed(3);
+  const r1 = v => (Math.round(v * 10) / 10).toString();
+  const sgn = v => (v > 0 ? '+' : v < 0 ? '−' : '') + r1(Math.abs(v));
 
   function showResults(){
-    const {P, R, D, res, outliers} = current;
-    $('screenInput').classList.add('hidden');
-    $('screenResult').classList.remove('hidden');
-    window.scrollTo(0, 0);
+    const c = current;
+    const {P, R, D, res, outliers, verdict, adapt} = c;
 
+    // Спортивный вердикт
+    const sp = $('sport');
+    sp.className = 'sport ' + verdict.cls;
+    sp.innerHTML =
+      `<div class="tag">Вердикт</div>
+       <div class="ri"><b class="mono">${r1(c.index)}%</b><span>индекс восстановления</span></div>
+       <div class="big"></div>
+       <div class="extra"></div>`;
+    sp.querySelector('.big').textContent = verdict.text;
+    const note = anomalyNote(c);
+    const ex = sp.querySelector('.extra');
+    if(note) ex.textContent = note; else ex.remove();
+
+    // Адаптация
+    const ad = $('adapt');
+    ad.className = 'adapt ' + adapt.cls;
+    ad.innerHTML =
+      `<div class="a-title"></div>
+       <div class="a-text"></div>
+       <div class="a-rows">
+         <div class="a-row"><span>Тренд пика за серию</span><b class="mono">${sgn(adapt.tP)} уд/мин</b></div>
+         <div class="a-row"><span>Тренд пульса восстановления</span><b class="mono">${sgn(adapt.tR)} уд/мин</b></div>
+         <div class="a-row"><span>Тренд падения</span><b class="mono">${sgn(adapt.tD)} уд/мин</b></div>
+       </div>`;
+    ad.querySelector('.a-title').textContent = adapt.title;
+    ad.querySelector('.a-text').textContent = adapt.text;
+
+    // Статистика
+    $('stPeak').textContent = r1(c.avgPeak);
+    $('stRest').textContent = r1(c.avgRest);
+    $('stDrop').textContent = r1(c.avgDrop);
+    $('stTrimp').textContent = c.trimp == null ? '—' : String(c.trimp);
+    $('stCv').textContent = r1(c.cv) + '%';
+    $('stCvTxt').textContent = cvLabel(c.cv);
+    $('stHr0').textContent = c.hr0 == null ? '—' : String(c.hr0);
+
+    // Диксон
     $('rN').textContent = res.n;
     $('rQc').textContent = fmt(res.crit) + (res.n > 10 ? ' (для N>10)' : '');
-
     const row = (name, val, q, out) =>
       `<tr>
         <td>${name}</td>
@@ -323,16 +676,14 @@
     $('qBody').innerHTML =
       row('Минимум (x₁)', res.minVal, res.qMin, res.minOut) +
       row('Максимум (xₙ)', res.maxVal, res.qMax, res.maxOut);
+    $('sortedLine').textContent = 'Падения по возрастанию: ' + res.sorted.join(', ');
 
-    $('sortedLine').textContent = 'Сортировка: ' + res.sorted.join(', ');
-
-    // Вывод
-    const v = $('verdict');
+    const v = $('dixonV');
     if(outliers.size === 0){
-      v.className = 'verdict v-ok';
+      v.className = 'dixon-v v-ok';
       v.textContent = 'Выбросов не обнаружено (восстановление стабильное)';
     } else {
-      v.className = 'verdict v-bad';
+      v.className = 'dixon-v v-bad';
       const parts = [];
       if(res.minOut) parts.push(`Обнаружен выброс в забеге №${res.minIdx+1} (падение ${res.minVal})`);
       if(res.maxOut) parts.push(`Обнаружен выброс в забеге №${res.maxIdx+1} (падение ${res.maxVal})`);
@@ -343,15 +694,17 @@
       const bad = outliers.has(i);
       return `<tr style="${bad ? 'color:var(--red);font-weight:700' : ''}">
         <td class="mono">${i+1}</td><td class="mono">${P[i]}</td><td class="mono">${R[i]}</td>
-        <td class="mono" style="${bad ? '' : 'color:var(--lime)'}">${d}</td></tr>`;
+        <td class="mono" style="${bad ? '' : 'color:var(--lime)'}">${d}</td>
+        <td class="mono">${c.load ? c.load[i] : '—'}</td></tr>`;
     }).join('');
 
-    requestAnimationFrame(drawChart);
+    updateSaveBtn();
+    show('Result');
   }
 
-  /* ---------- График ---------- */
+  /* ---------- График: две линии ---------- */
   function drawChart(){
-    if(!current) return;
+    if(!current || $('screenResult').classList.contains('hidden')) return;
     const cv = $('chart');
     const dpr = window.devicePixelRatio || 1;
     const W = cv.clientWidth, H = cv.clientHeight;
@@ -361,74 +714,519 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
 
-    const {D, outliers} = current;
-    const n = D.length;
-    const padL = 40, padR = 16, padT = 22, padB = 32;
+    const {P, R, D, outliers, hr0} = current;
+    const n = P.length;
+    const padL = 40, padR = 16, padT = 20, padB = 32;
     const cw = W - padL - padR, ch = H - padT - padB;
 
-    let lo = Math.min(...D), hi = Math.max(...D);
-    let yMin = Math.floor((lo - 4) / 5) * 5;
-    let yMax = Math.ceil((hi + 4) / 5) * 5;
-    if(yMax - yMin < 10) yMax = yMin + 10;
-    const step = (yMax - yMin) > 60 ? 20 : (yMax - yMin) > 30 ? 10 : 5;
+    const lowVals = R.slice(); if(hr0 != null) lowVals.push(hr0);
+    const lo = Math.min(...lowVals), hi = Math.max(...P);
+    const yMin = Math.floor((lo - 6) / 10) * 10;
+    const yMax = Math.ceil((hi + 6) / 10) * 10;
+    const span = yMax - yMin;
+    const step = span > 120 ? 20 : 10;
 
     const X = i => padL + (n === 1 ? cw/2 : i * cw / (n - 1));
-    const Y = v => padT + ch - (v - yMin) / (yMax - yMin) * ch;
+    const Y = v => padT + ch - (v - yMin) / span * ch;
 
     // сетка и ось Y
     ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
     ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
     ctx.lineWidth = 1;
-    const startTick = Math.ceil(yMin / step) * step;
-    for(let t = startTick; t <= yMax; t += step){
+    for(let t = Math.ceil(yMin / step) * step; t <= yMax; t += step){
       const y = Math.round(Y(t)) + .5;
       ctx.strokeStyle = '#30343b';
       ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
       ctx.fillStyle = '#9aa2ad';
       ctx.fillText(t, padL - 6, y);
     }
-    // ось X
+
+    // полосы выбросов (по падению)
+    const bw = Math.min(26, cw / Math.max(n, 2) * .9);
+    outliers.forEach(i => {
+      ctx.fillStyle = 'rgba(255,77,79,.14)';
+      ctx.fillRect(X(i) - bw/2, padT, bw, ch);
+      ctx.strokeStyle = 'rgba(255,77,79,.5)'; ctx.lineWidth = 1;
+      ctx.strokeRect(X(i) - bw/2 + .5, padT + .5, bw - 1, ch - 1);
+    });
+
+    // ось X (номера забегов)
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
+    for(let i = 0; i < n; i++){
+      ctx.fillStyle = outliers.has(i) ? '#ff8a8c' : '#9aa2ad';
+      ctx.fillText(i + 1, X(i), H - padB + 8);
+    }
+    ctx.strokeStyle = '#4a505a'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL + .5, padT); ctx.lineTo(padL + .5, padT + ch); ctx.lineTo(W - padR, padT + ch); ctx.stroke();
+
+    // линия покоя
+    if(hr0 != null){
+      const y = Math.round(Y(hr0)) + .5;
+      ctx.setLineDash([5, 4]);
+      ctx.strokeStyle = '#5aa9ff'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#5aa9ff'; ctx.font = '10px ui-monospace, Menlo, Consolas, monospace';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+      ctx.fillText('покой ' + hr0, W - padR - 2, y - 2);
+    }
+
+    // заливка между линиями
+    ctx.beginPath();
+    P.forEach((v, i) => i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)));
+    for(let i = n - 1; i >= 0; i--) ctx.lineTo(X(i), Y(R[i]));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(182,242,58,.07)';
+    ctx.fill();
+
+    const drawLine = (arr, color) => {
+      ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      ctx.beginPath();
+      arr.forEach((v, i) => i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)));
+      ctx.stroke();
+    };
+    drawLine(P, '#ff4d4f');
+    drawLine(R, '#b6f23a');
+
+    const showLabels = n <= 8;
+    const dot = (x, y, color, r) => {
+      ctx.fillStyle = color; ctx.strokeStyle = '#16181b'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    };
+    for(let i = 0; i < n; i++){
+      dot(X(i), Y(P[i]), '#ff4d4f', n > 10 ? 3.8 : 4.8);
+      dot(X(i), Y(R[i]), '#b6f23a', n > 10 ? 3.8 : 4.8);
+      if(showLabels){
+        ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffb3b4'; ctx.textBaseline = 'bottom';
+        ctx.fillText(P[i], X(i), Y(P[i]) - 8);
+        ctx.fillStyle = '#d9f58f'; ctx.textBaseline = 'top';
+        ctx.fillText(R[i], X(i), Y(R[i]) + 8);
+      }
+    }
+
+    // подпись выбросов: значение падения посередине между точками
+    outliers.forEach(i => {
+      const x = X(i), ym = (Y(P[i]) + Y(R[i])) / 2;
+      ctx.font = 'bold 12px ui-monospace, Menlo, Consolas, monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const txt = 'Δ' + D[i];
+      const tw = ctx.measureText(txt).width + 8;
+      ctx.fillStyle = '#16181b';
+      ctx.fillRect(x - tw/2, ym - 9, tw, 18);
+      ctx.fillStyle = '#ff4d4f';
+      ctx.fillText(txt, x, ym);
+    });
+
+    ctx.fillStyle = '#6b727c'; ctx.font = '10px -apple-system, Roboto, Arial, sans-serif';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+    ctx.fillText('№ забега', W - padR, H - 2);
+  }
+  window.addEventListener('resize', drawChart);
+  window.addEventListener('orientationchange', () => setTimeout(drawChart, 200));
+
+  /* ---------- История (localStorage) ---------- */
+  function loadHistory(){
+    try{
+      let raw = localStorage.getItem(STORE_KEY);
+      if(raw === null){
+        // миграция записей из предыдущей версии (без пульса в покое)
+        const old = localStorage.getItem(OLD_KEY);
+        if(old){
+          const a = JSON.parse(old);
+          if(Array.isArray(a)){
+            const m = a.map(x => ({ id:x.id, date:x.date, hr0:null, P:x.P, R:x.R }));
+            localStorage.setItem(STORE_KEY, JSON.stringify(m));
+            return m;
+          }
+        }
+        return [];
+      }
+      const a = JSON.parse(raw);
+      return Array.isArray(a) ? a : [];
+    }catch(e){ return []; }
+  }
+  function saveHistory(a){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(a)); return true; }
+    catch(e){ return false; }
+  }
+
+  function updateSaveBtn(){
+    const b = $('btnSave');
+    if(savedId){ b.textContent = 'Сохранено ✓'; b.disabled = true; }
+    else { b.textContent = 'Сохранить тест'; b.disabled = false; }
+  }
+
+  $('btnSave').onclick = () => {
+    if(!current || savedId) return;
+    const hist = loadHistory();
+    const id = Date.now();
+    hist.unshift({ id, date: id, hr0: current.hr0, P: current.P, R: current.R });
+    if(hist.length > 100) hist.length = 100;
+    if(saveHistory(hist)){
+      savedId = id; updateSaveBtn(); toast('Тест сохранён в историю');
+    } else toast('Не удалось сохранить (хранилище недоступно)');
+  };
+
+  const dateFmt = ts => {
+    const d = new Date(ts), p = n => String(n).padStart(2, '0');
+    return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  };
+  const levelColor = l => l === 'good' ? 'var(--lime)' : l === 'mid' ? 'var(--amber)' : 'var(--red)';
+  const levelBadge = l => l === 'good' ? 'b-ok' : l === 'mid' ? 'b-mid' : 'b-bad';
+  const adaptShort = l => l === 'good' ? 'Адаптация стабильная' : l === 'mid' ? 'Адаптация промежуточная' : 'Адаптация снижена';
+
+  function renderHistory(){
+    const hist = loadHistory();
+    const list = $('histList');
+    $('btnClear').classList.toggle('hidden', hist.length === 0);
+    if(!hist.length){
+      list.innerHTML = '<div class="empty">История пуста.<br>Выполните тест и нажмите «Сохранить тест».</div>';
+      return;
+    }
+    list.innerHTML = '';
+    hist.forEach(item => {
+      const c = compute(item.hr0 == null ? null : item.hr0, item.P, item.R);
+      const el = document.createElement('div');
+      el.className = 'h-item';
+      const sel = compareSel.indexOf(item.id) >= 0;
+      el.innerHTML =
+        `<button class="h-check ${sel ? 'on' : ''}" data-chk="${item.id}" aria-label="Выбрать для сравнения"><i>✓</i></button>
+         <button class="h-main" data-open="${item.id}">
+           <div class="h-top">
+             <span class="h-date mono">${dateFmt(item.date)}</span>
+             <span class="badge ${levelBadge(c.adapt.level)}">${adaptShort(c.adapt.level)}</span>
+           </div>
+           <div class="h-idx mono" style="color:${levelColor(c.verdict.level)}">${r1(c.index)}%</div>
+           <div class="h-sub">Забегов: ${item.P.length} · покой ${c.hr0 == null ? '—' : c.hr0} · пик ${r1(c.avgPeak)} · отдых ${r1(c.avgRest)} · падение ${r1(c.avgDrop)} · CV ${r1(c.cv)}%${c.trimp == null ? '' : ' · TRIMP ' + c.trimp}${c.outliers.size ? ' · выбросов: ' + c.outliers.size : ''}</div>
+         </button>
+         <button class="h-del" data-del="${item.id}" aria-label="Удалить">×</button>`;
+      list.appendChild(el);
+    });
+  }
+
+  $('histList').addEventListener('click', e => {
+    const chk = e.target.closest('[data-chk]');
+    const open = e.target.closest('[data-open]');
+    const del = e.target.closest('[data-del]');
+    if(chk){ toggleCompare(+chk.dataset.chk); return; }
+    if(del){
+      const id = +del.dataset.del;
+      saveHistory(loadHistory().filter(x => x.id !== id));
+      if(savedId === id) savedId = null;
+      renderHistory();
+      return;
+    }
+    if(open){
+      const id = +open.dataset.open;
+      const item = loadHistory().find(x => x.id === id);
+      if(!item) return;
+      count = item.P.length;
+      restHR = item.hr0 == null ? '' : String(item.hr0);
+      for(let i = 0; i < MAX_N; i++){
+        peaks[i] = i < count ? String(item.P[i]) : '';
+        rests[i] = i < count ? String(item.R[i]) : '';
+      }
+      renderRuns();
+      current = compute(item.hr0 == null ? null : item.hr0, item.P, item.R);
+      savedId = id;
+      showResults();
+    }
+  });
+
+  $('btnClear').onclick = () => {
+    if(confirm('Удалить всю историю?')){
+      saveHistory([]);
+      savedId = null;
+      renderHistory();
+    }
+  };
+
+  /* ---------- Сравнение тестов ---------- */
+  const compareSel = [];   // id выбранных тестов (в порядке выбора)
+  let currentCmp = null;
+
+  function updateCmpBar(){
+    const onHistory = !$('screenHistory').classList.contains('hidden');
+    $('cmpBar').classList.toggle('hidden', !(onHistory && compareSel.length > 0));
+    $('btnCompare').disabled = compareSel.length !== 2;
+    $('cmpHint').textContent = compareSel.length === 2
+      ? 'Выбрано 2 теста — можно сравнивать'
+      : `Выбрано ${compareSel.length} из 2 · отметьте ещё ${2 - compareSel.length}`;
+  }
+
+  function toggleCompare(id){
+    const i = compareSel.indexOf(id);
+    if(i >= 0) compareSel.splice(i, 1);
+    else { compareSel.push(id); if(compareSel.length > 2) compareSel.shift(); }
+    renderHistory();
+    updateCmpBar();
+  }
+
+  $('btnCompare').onclick = () => {
+    if(compareSel.length !== 2) return;
+    const hist = loadHistory();
+    const a = hist.find(x => x.id === compareSel[0]);
+    const b = hist.find(x => x.id === compareSel[1]);
+    if(!a || !b){ toast('Выбранные тесты не найдены'); return; }
+    const first  = a.date <= b.date ? a : b;   // «Было»
+    const second = a.date <= b.date ? b : a;   // «Стало»
+    currentCmp = {
+      ca: compute(first.hr0 == null ? null : first.hr0, first.P, first.R),
+      cb: compute(second.hr0 == null ? null : second.hr0, second.P, second.R),
+      ta: first, tb: second
+    };
+    renderCompare();
+    show('Compare');
+  };
+  $('btnCmpBack').onclick = () => show('History');
+
+  function renderCompare(){
+    const {ca, cb, ta, tb} = currentCmp;
+    const dDrop = cb.avgDrop - ca.avgDrop;
+    const dIndex = cb.index - ca.index;
+    const dCv = cb.cv - ca.cv;
+
+    let v;
+    if(dDrop > 1){
+      v = {cls:'s-good', title:'Отличный прогресс: сердце восстанавливается быстрее',
+        text:`Среднее падение пульса выросло с ${r1(ca.avgDrop)} до ${r1(cb.avgDrop)} уд/мин. Индекс восстановления ${dIndex >= 0 ? 'вырос' : 'снизился'} на ${r1(Math.abs(dIndex))} п.п. и составляет ${r1(cb.index)}%.`};
+    } else if(dDrop < -1){
+      v = {cls:'s-bad', title:'Внимание: наблюдается ухудшение восстановления по сравнению с предыдущим тестом',
+        text:`Среднее падение пульса снизилось с ${r1(ca.avgDrop)} до ${r1(cb.avgDrop)} уд/мин. Индекс восстановления ${dIndex >= 0 ? 'вырос' : 'снизился'} на ${r1(Math.abs(dIndex))} п.п. и составляет ${r1(cb.index)}%.`};
+    } else {
+      v = {cls:'s-mid', title:'Стабильность: заметных изменений нет',
+        text:`Среднее падение пульса практически не изменилось (${r1(ca.avgDrop)} → ${r1(cb.avgDrop)} уд/мин). Показатели на уровне предыдущего теста.`};
+    }
+
+    const box = $('cmpVerdict');
+    box.className = 'adapt ' + v.cls;
+    box.innerHTML =
+      `<div class="a-title"></div>
+       <div class="a-text"></div>
+       <div class="a-rows">
+         <div class="a-row"><span>Δ среднего падения</span><b class="mono">${sgn(dDrop)} уд/мин</b></div>
+         <div class="a-row"><span>Δ индекса восстановления</span><b class="mono">${sgn(dIndex)} п.п.</b></div>
+         <div class="a-row"><span>Δ коэффициента вариации</span><b class="mono">${sgn(dCv)} п.п.</b></div>
+       </div>`;
+    box.querySelector('.a-title').textContent = v.title;
+    box.querySelector('.a-text').textContent = v.text;
+
+    $('cmpLegendTxt').textContent =
+      `Было: ${dateFmt(ta.date)} · забегов ${ta.P.length}. Стало: ${dateFmt(tb.date)} · забегов ${tb.P.length}.`;
+    $('lgA').textContent = 'Было · ' + dateFmt(ta.date);
+    $('lgB').textContent = 'Стало · ' + dateFmt(tb.date);
+
+    const rows = [
+      ['Индекс восстановления', ca.index, cb.index, 1, x => r1(x) + '%', true],
+      ['Среднее падение, уд/мин', ca.avgDrop, cb.avgDrop, 1, x => r1(x), true],
+      ['Средний пик, уд/мин', ca.avgPeak, cb.avgPeak, 1, x => r1(x), false],
+      ['Средний отдых, уд/мин', ca.avgRest, cb.avgRest, 1, x => r1(x), false],
+      ['TRIMP (упр.)', ca.trimp, cb.trimp, 0, x => x == null ? '—' : String(x), false],
+      ['CV падения', ca.cv, cb.cv, 1, x => r1(x) + '%', false],
+      ['Пульс в покое', ca.hr0, cb.hr0, 0, x => x == null ? '—' : String(x), false],
+      ['Выбросов Диксона', ca.outliers.size, cb.outliers.size, 0, x => String(x), false]
+    ];
+    $('cmpBody').innerHTML = rows.map(r => {
+      const name = r[0], a = r[1], b = r[2], dec = r[3], f = r[4], goodUp = r[5];
+      let dTxt = '—', dCls = 'd-flat';
+      if(a != null && b != null){
+        const d = b - a;
+        if(Math.abs(d) < (dec ? 0.05 : 0.5)){
+          dTxt = '0'; dCls = 'd-flat';
+        } else {
+          dTxt = dec ? sgn(d) : (d > 0 ? '+' : '−') + Math.abs(d);
+          dCls = (goodUp ? d > 0 : d < 0) ? 'd-up' : 'd-down';
+        }
+      }
+      return `<tr><td>${name}</td><td class="mono">${f(a)}</td><td class="mono">${f(b)}</td><td class="mono ${dCls}">${dTxt}</td></tr>`;
+    }).join('');
+  }
+
+  /* график 1: две линии падений наложены */
+  function drawCompare(){
+    if(!currentCmp) return;
+    const cv = $('cmpChart');
+    const dpr = window.devicePixelRatio || 1;
+    const W = cv.clientWidth, H = cv.clientHeight;
+    if(!W) return;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    const A = currentCmp.ca.D, B = currentCmp.cb.D;
+    const n = Math.max(A.length, B.length);
+    const all = A.concat(B);
+    const yMin = Math.floor((Math.min(...all) - 5) / 5) * 5;
+    const yMax = Math.ceil((Math.max(...all) + 5) / 5) * 5;
+    const span = Math.max(yMax - yMin, 10);
+    const padL = 40, padR = 16, padT = 18, padB = 30;
+    const cw = W - padL - padR, ch = H - padT - padB;
+    const X = i => padL + (n === 1 ? cw/2 : i * cw / (n - 1));
+    const Y = v => padT + ch - (v - yMin) / span * ch;
+
+    ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.lineWidth = 1;
+    const step = span > 60 ? 20 : span > 30 ? 10 : 5;
+    for(let t = Math.ceil(yMin / step) * step; t <= yMax; t += step){
+      const y = Math.round(Y(t)) + .5;
+      ctx.strokeStyle = '#30343b';
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      ctx.fillStyle = '#9aa2ad';
+      ctx.fillText(t, padL - 6, y);
+    }
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     for(let i = 0; i < n; i++){
       ctx.fillStyle = '#9aa2ad';
       ctx.fillText(i + 1, X(i), H - padB + 8);
     }
-    ctx.strokeStyle = '#4a505a';
+    ctx.strokeStyle = '#4a505a'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(padL + .5, padT); ctx.lineTo(padL + .5, padT + ch); ctx.lineTo(W - padR, padT + ch); ctx.stroke();
 
-    // линия
-    ctx.strokeStyle = 'rgba(182,242,58,.65)';
-    ctx.lineWidth = 2; ctx.lineJoin = 'round';
-    ctx.beginPath();
-    D.forEach((d, i) => i ? ctx.lineTo(X(i), Y(d)) : ctx.moveTo(X(i), Y(d)));
-    ctx.stroke();
+    // заливка между линиями там, где есть оба значения
+    const m = Math.min(A.length, B.length);
+    if(m > 1){
+      ctx.beginPath();
+      for(let i = 0; i < m; i++) i ? ctx.lineTo(X(i), Y(A[i])) : ctx.moveTo(X(i), Y(A[i]));
+      for(let i = m - 1; i >= 0; i--) ctx.lineTo(X(i), Y(B[i]));
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(182,242,58,.07)';
+      ctx.fill();
+    }
 
-    // точки
-    D.forEach((d, i) => {
-      const bad = outliers.has(i);
-      const x = X(i), y = Y(d);
-      if(bad){
-        ctx.fillStyle = 'rgba(255,77,79,.25)';
-        ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI * 2); ctx.fill();
-      }
-      ctx.fillStyle = bad ? '#ff4d4f' : '#b6f23a';
-      ctx.strokeStyle = '#16181b'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(x, y, bad ? 6.5 : 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    const line = (arr, color) => {
+      ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      ctx.beginPath();
+      arr.forEach((v, i) => i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)));
+      ctx.stroke();
+    };
+    line(A, '#5aa9ff');
+    line(B, '#b6f23a');
 
-      ctx.font = (bad ? 'bold ' : '') + '11px ui-monospace, Menlo, Consolas, monospace';
-      ctx.fillStyle = bad ? '#ff8a8c' : '#e5e9ef';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-      ctx.fillText(d, x, y - (bad ? 12 : 9));
-    });
+    const showLabels = n <= 8;
+    const draw = (arr, color, up) => {
+      arr.forEach((v, i) => {
+        ctx.fillStyle = color; ctx.strokeStyle = '#16181b'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(X(i), Y(v), 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        if(showLabels){
+          ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
+          ctx.fillStyle = color; ctx.textAlign = 'center';
+          ctx.textBaseline = up ? 'bottom' : 'top';
+          ctx.fillText(v, X(i), Y(v) + (up ? -8 : 8));
+        }
+      });
+    };
+    draw(A, '#5aa9ff', true);
+    draw(B, '#b6f23a', false);
 
-    // подпись оси X
     ctx.fillStyle = '#6b727c'; ctx.font = '10px -apple-system, Roboto, Arial, sans-serif';
     ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
     ctx.fillText('№ забега', W - padR, H - 2);
   }
 
-  window.addEventListener('resize', drawChart);
-  window.addEventListener('orientationchange', () => setTimeout(drawChart, 200));
+  /* график 2: столбики разницы (Стало − Было) */
+  function drawDiff(){
+    if(!currentCmp) return;
+    const cv = $('diffChart');
+    const dpr = window.devicePixelRatio || 1;
+    const W = cv.clientWidth, H = cv.clientHeight;
+    if(!W) return;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    const A = currentCmp.ca.D, B = currentCmp.cb.D;
+    const n = Math.max(A.length, B.length);
+    const diffs = [];
+    for(let i = 0; i < n; i++) diffs.push((i < A.length && i < B.length) ? B[i] - A[i] : null);
+    const vals = diffs.filter(v => v !== null);
+    const lim = Math.max(5, Math.ceil(Math.max(...vals.map(Math.abs)) / 5) * 5);
+
+    const padL = 40, padR = 16, padT = 16, padB = 30;
+    const cw = W - padL - padR, ch = H - padT - padB;
+    const zero = Math.round(padT + ch / 2) + .5;
+    const X = i => padL + (n === 1 ? cw/2 : (i + .5) * cw / n);
+    const half = ch / 2;
+    const Y = v => zero - (v / lim) * half;
+
+    // оси и подписи
+    ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    [lim, 0, -lim].forEach(t => {
+      const y = Math.round(Y(t)) + .5;
+      ctx.strokeStyle = t === 0 ? '#5a616b' : '#30343b';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      ctx.fillStyle = '#9aa2ad';
+      ctx.fillText((t > 0 ? '+' : '') + t, padL - 6, y);
+    });
+
+    const bw = Math.min(30, cw / n * .62);
+    diffs.forEach((d, i) => {
+      if(d === null) return;
+      const x = X(i);
+      if(d === 0){
+        ctx.fillStyle = '#5a616b';
+        ctx.fillRect(x - bw/2, zero - 1, bw, 2);
+      } else {
+        const y = Y(d);
+        ctx.fillStyle = d > 0 ? '#b6f23a' : '#ff4d4f';
+        ctx.fillRect(x - bw/2, Math.min(y, zero), bw, Math.abs(y - zero));
+      }
+      if(n <= 12){
+        ctx.font = 'bold 11px ui-monospace, Menlo, Consolas, monospace';
+        ctx.fillStyle = d > 0 ? '#b6f23a' : d < 0 ? '#ff8a8c' : '#9aa2ad';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = d >= 0 ? 'bottom' : 'top';
+        ctx.fillText((d > 0 ? '+' : '') + d, x, d >= 0 ? Y(d) - 4 : Y(d) + 4);
+      }
+    });
+
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
+    for(let i = 0; i < n; i++){
+      const has = diffs[i] !== null;
+      ctx.fillStyle = has ? '#9aa2ad' : '#565c65';
+      ctx.fillText(has ? (i + 1) : '—', X(i), H - padB + 8);
+    }
+  }
+
+  /* ---------- Поделиться ---------- */
+  function buildShareText(c){
+    const lines = [
+      'Стресс-тест: восстановление пульса',
+      `Пульс в покое: ${c.hr0 == null ? '—' : c.hr0} уд/мин`,
+      `Забегов: ${c.P.length}`,
+      `Средний пик: ${r1(c.avgPeak)} · средний отдых: ${r1(c.avgRest)} · среднее падение: ${r1(c.avgDrop)}`,
+      `Индекс восстановления: ${r1(c.index)}%`,
+      `TRIMP (упрощ.): ${c.trimp == null ? '—' : c.trimp} · CV падения: ${r1(c.cv)}%`,
+      c.adapt.title,
+      '',
+      c.verdict.text
+    ];
+    const note = anomalyNote(c);
+    if(note) lines.push(note);
+    lines.push('', 'Пики: ' + c.P.join(', '), 'Отдых: ' + c.R.join(', '), 'Падения: ' + c.D.join(', '));
+    return lines.join('\n');
+  }
+
+  $('btnShare').onclick = async () => {
+    if(!current) return;
+    const text = buildShareText(current);
+    if(navigator.share){
+      try{ await navigator.share({ title: 'Стресс-тест пульса', text }); }
+      catch(e){ /* пользователь закрыл окно */ }
+    } else if(navigator.clipboard && navigator.clipboard.writeText){
+      try{ await navigator.clipboard.writeText(text); toast('Результат скопирован в буфер обмена'); }
+      catch(e){ toast('Поделиться не поддерживается в этом браузере'); }
+    } else {
+      toast('Поделиться не поддерживается в этом браузере');
+    }
+  };
 
   renderRuns();
 })();
