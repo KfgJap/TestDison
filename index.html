@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#16181b">
+<title>Тест Диксона — восстановление пульса</title>
+<style>
+  :root{
+    --bg:#16181b; --panel:#202328; --panel2:#2a2e34; --line:#3a3f47;
+    --text:#f2f4f7; --muted:#9aa2ad; --lime:#b6f23a; --red:#ff4d4f;
+  }
+  *{ -webkit-tap-highlight-color:transparent; box-sizing:border-box; }
+  html,body{ background:var(--bg); color:var(--text); margin:0; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    padding-top:env(safe-area-inset-top);
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
+    padding-bottom:calc(env(safe-area-inset-bottom) + 16px);
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{ max-width:520px; margin:0 auto; padding:16px; }
+  .mono{ font-family:ui-monospace,"SF Mono",Menlo,monospace; font-variant-numeric:tabular-nums; }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; }
+  .label{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .btn{
+    width:100%; border:0; border-radius:14px; padding:18px; font-size:18px; font-weight:700;
+    background:var(--lime); color:#10130a; transition:transform .1s, opacity .1s;
+  }
+  .btn:active{ transform:scale(.98); opacity:.85; }
+  .btn-ghost{ background:var(--panel2); color:var(--text); border:1px solid var(--line); font-weight:600; }
+  .step{
+    width:60px; height:60px; border-radius:16px; border:1px solid var(--line);
+    background:var(--panel2); color:var(--text); font-size:32px; line-height:1; font-weight:300;
+  }
+  .step:active{ background:var(--lime); color:#10130a; }
+  .step:disabled{ opacity:.3; }
+  .inp{
+    width:100%; height:56px; border-radius:12px; border:2px solid var(--line);
+    background:var(--bg); color:var(--text); font-size:24px; font-weight:600; text-align:center;
+    outline:none; -webkit-appearance:none; appearance:none;
+  }
+  .inp:focus{ border-color:var(--lime); }
+  .inp.bad{ border-color:var(--red); background:rgba(255,77,79,.08); }
+  .inp::placeholder{ color:#555b64; font-weight:400; }
+  .run-n{
+    width:34px; height:34px; border-radius:50%; background:var(--panel2); color:var(--lime);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex:none;
+  }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  th{ text-align:left; color:var(--muted); font-weight:500; font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:6px 4px; border-bottom:1px solid var(--line); }
+  td{ padding:10px 4px; border-bottom:1px solid var(--line); }
+  tr:last-child td{ border-bottom:0; }
+  .badge{ display:inline-block; padding:2px 8px; border-radius:99px; font-size:12px; font-weight:700; }
+  .b-ok{ background:rgba(182,242,58,.15); color:var(--lime); }
+  .b-bad{ background:rgba(255,77,79,.18); color:var(--red); }
+  .verdict{ border-radius:14px; padding:14px 16px; font-size:16px; line-height:1.4; font-weight:500; }
+  .v-ok{ background:rgba(182,242,58,.1); border:1px solid rgba(182,242,58,.4); color:var(--lime); }
+  .v-bad{ background:rgba(255,77,79,.1); border:1px solid rgba(255,77,79,.45); color:#ff8a8c; }
+  canvas{ width:100%; height:270px; display:block; }
+  .hidden{ display:none; }
+  .err{ color:var(--red); font-size:14px; min-height:20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="mb-4">
+    <div class="label">Тест Диксона · p = 0.05</div>
+    <h1 class="text-2xl font-bold mt-1 leading-tight">Анализ восстановления пульса</h1>
+  </header>
+
+  <!-- ЭКРАН ВВОДА -->
+  <section id="screenInput">
+    <div class="card mb-4">
+      <div class="label mb-3">Количество забегов (3–15)</div>
+      <div class="flex items-center justify-between">
+        <button id="btnMinus" class="step" aria-label="Меньше">−</button>
+        <div class="text-center">
+          <div id="countVal" class="mono text-5xl font-bold" style="color:var(--lime)">5</div>
+        </div>
+        <button id="btnPlus" class="step" aria-label="Больше">+</button>
+      </div>
+    </div>
+
+    <div class="flex px-1 mb-2 gap-3 label">
+      <div style="width:34px"></div>
+      <div class="flex-1 text-center">Пик, уд/мин</div>
+      <div class="flex-1 text-center">Отдых, уд/мин</div>
+    </div>
+
+    <div id="runs" class="flex flex-col gap-2 mb-4"></div>
+
+    <div id="errBox" class="err mb-2 text-center"></div>
+    <button id="btnAnalyze" class="btn mb-3">Анализировать</button>
+    <button id="btnDemo" class="btn btn-ghost" style="font-size:15px;padding:13px">Заполнить примером</button>
+    <p class="text-xs mt-4 text-center" style="color:var(--muted)">Допустимые значения пульса: от 40 до 250. «Пик» не может быть ниже «Отдыха».</p>
+  </section>
+
+  <!-- ЭКРАН РЕЗУЛЬТАТОВ -->
+  <section id="screenResult" class="hidden">
+    <div class="card mb-4">
+      <div class="label mb-1">Падение пульса по забегам</div>
+      <div class="text-xs mb-2" style="color:var(--muted)">Пик − Отдых, уд/мин. Выше — лучше восстановление.</div>
+      <canvas id="chart"></canvas>
+      <div class="flex gap-4 mt-2 text-xs" style="color:var(--muted)">
+        <span class="flex items-center gap-1"><i style="width:10px;height:10px;border-radius:50%;background:var(--lime);display:inline-block"></i>норма</span>
+        <span class="flex items-center gap-1"><i style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block"></i>выброс</span>
+      </div>
+    </div>
+
+    <div id="verdict" class="verdict mb-4"></div>
+
+    <div class="card mb-4">
+      <div class="label mb-2">Q-критерий Диксона</div>
+      <div class="text-sm mb-3" style="color:var(--muted)">
+        N = <span id="rN" class="mono" style="color:var(--text)"></span> ·
+        Q<sub>крит</sub> (p=0.05) = <span id="rQc" class="mono" style="color:var(--text)"></span>
+      </div>
+      <table>
+        <thead><tr><th>Проверка</th><th>Значение</th><th>Q</th><th>Итог</th></tr></thead>
+        <tbody id="qBody"></tbody>
+      </table>
+      <div class="text-xs mt-3 mono" style="color:var(--muted)" id="sortedLine"></div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="label mb-2">Данные забегов</div>
+      <table>
+        <thead><tr><th>№</th><th>Пик</th><th>Отдых</th><th>Падение</th></tr></thead>
+        <tbody id="dataBody"></tbody>
+      </table>
+    </div>
+
+    <button id="btnBack" class="btn btn-ghost">← Изменить данные</button>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  const MIN_N = 3, MAX_N = 15, HR_MIN = 40, HR_MAX = 250;
+  // Критические значения Q (p = 0.05)
+  const Q_CRIT = {3:0.970, 4:0.829, 5:0.710, 6:0.628, 7:0.569, 8:0.524, 9:0.492, 10:0.464};
+  const qCrit = n => n <= 10 ? Q_CRIT[n] : 0.464;
+
+  let count = 5;
+  const peaks = new Array(MAX_N).fill('');
+  const rests = new Array(MAX_N).fill('');
+
+  const $ = id => document.getElementById(id);
+  const runsEl = $('runs');
+
+  /* ---------- UI ввода ---------- */
+  function renderRuns(){
+    runsEl.innerHTML = '';
+    for(let i = 0; i < count; i++){
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-3';
+      row.innerHTML =
+        `<div class="run-n">${i+1}</div>
+         <input class="inp mono" data-k="p" data-i="${i}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" placeholder="—" autocomplete="off" aria-label="Пик, забег ${i+1}" value="${peaks[i]}">
+         <input class="inp mono" data-k="r" data-i="${i}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" placeholder="—" autocomplete="off" aria-label="Отдых, забег ${i+1}" value="${rests[i]}">`;
+      runsEl.appendChild(row);
+    }
+    $('countVal').textContent = count;
+    $('btnMinus').disabled = count <= MIN_N;
+    $('btnPlus').disabled = count >= MAX_N;
+  }
+
+  runsEl.addEventListener('input', e => {
+    const t = e.target;
+    if(!t.classList.contains('inp')) return;
+    t.value = t.value.replace(/\D/g, '').slice(0, 3);
+    const i = +t.dataset.i;
+    (t.dataset.k === 'p' ? peaks : rests)[i] = t.value;
+    t.classList.remove('bad');
+    $('errBox').textContent = '';
+  });
+
+  $('btnMinus').onclick = () => { if(count > MIN_N){ count--; renderRuns(); } };
+  $('btnPlus').onclick  = () => { if(count < MAX_N){ count++; renderRuns(); } };
+
+  $('btnDemo').onclick = () => {
+    const demoP = [172,175,170,178,174,171,176,173,177,169,175,172,174,176,171];
+    const demoR = [128,130,126,150,129,127,131,128,132,125,130,127,129,131,126];
+    for(let i = 0; i < MAX_N; i++){ peaks[i] = String(demoP[i]); rests[i] = String(demoR[i]); }
+    renderRuns();
+  };
+
+  /* ---------- Валидация ---------- */
+  function validate(){
+    let firstBad = null, msg = '';
+    const inputs = runsEl.querySelectorAll('.inp');
+    inputs.forEach(el => el.classList.remove('bad'));
+    for(let i = 0; i < count; i++){
+      const pEl = inputs[i*2], rEl = inputs[i*2+1];
+      const p = parseInt(peaks[i], 10), r = parseInt(rests[i], 10);
+      const pOk = peaks[i] !== '' && p >= HR_MIN && p <= HR_MAX;
+      const rOk = rests[i] !== '' && r >= HR_MIN && r <= HR_MAX;
+      if(!pOk){ pEl.classList.add('bad'); if(!firstBad){ firstBad = pEl; msg = `Забег ${i+1}: пик должен быть от ${HR_MIN} до ${HR_MAX}`; } }
+      if(!rOk){ rEl.classList.add('bad'); if(!firstBad){ firstBad = rEl; msg = `Забег ${i+1}: отдых должен быть от ${HR_MIN} до ${HR_MAX}`; } }
+      if(pOk && rOk && r > p){
+        pEl.classList.add('bad'); rEl.classList.add('bad');
+        if(!firstBad){ firstBad = pEl; msg = `Забег ${i+1}: пульс отдыха выше пикового`; }
+      }
+    }
+    if(firstBad){
+      $('errBox').textContent = msg;
+      firstBad.scrollIntoView({behavior:'smooth', block:'center'});
+      return false;
+    }
+    $('errBox').textContent = '';
+    return true;
+  }
+
+  /* ---------- Тест Диксона ---------- */
+  // Применяется к массиву падений drops[i] = peak[i] - rest[i]
+  function dixon(drops){
+    const n = drops.length;
+    const items = drops.map((v, i) => ({v, i})).sort((a, b) => a.v - b.v || a.i - b.i);
+    const x = items.map(o => o.v);
+    const range = x[n-1] - x[0];
+    const crit = qCrit(n);
+    let qMax = 0, qMin = 0;
+    if(range > 0){
+      qMax = (x[n-1] - x[n-2]) / range;
+      qMin = (x[1] - x[0]) / range;
+    }
+    return {
+      n, crit, sorted: x, range,
+      qMax, qMin,
+      maxOut: range > 0 && qMax > crit,
+      minOut: range > 0 && qMin > crit,
+      maxIdx: items[n-1].i, minIdx: items[0].i,
+      maxVal: x[n-1], minVal: x[0]
+    };
+  }
+
+  /* ---------- Анализ ---------- */
+  let current = null;
+
+  $('btnAnalyze').onclick = () => {
+    if(!validate()) return;
+    const P = [], R = [], D = [];
+    for(let i = 0; i < count; i++){
+      P.push(parseInt(peaks[i], 10));
+      R.push(parseInt(rests[i], 10));
+      D.push(P[i] - R[i]);              // Drop = Peak - Rest
+    }
+    const res = dixon(D);               // тест именно по падениям
+    const outliers = new Set();
+    if(res.maxOut) outliers.add(res.maxIdx);
+    if(res.minOut) outliers.add(res.minIdx);
+    current = {P, R, D, res, outliers};
+    showResults();
+  };
+
+  $('btnBack').onclick = () => {
+    $('screenResult').classList.add('hidden');
+    $('screenInput').classList.remove('hidden');
+    window.scrollTo(0, 0);
+  };
+
+  const fmt = q => q.toFixed(3);
+
+  function showResults(){
+    const {P, R, D, res, outliers} = current;
+    $('screenInput').classList.add('hidden');
+    $('screenResult').classList.remove('hidden');
+    window.scrollTo(0, 0);
+
+    $('rN').textContent = res.n;
+    $('rQc').textContent = fmt(res.crit) + (res.n > 10 ? ' (для N>10)' : '');
+
+    const row = (name, val, q, out) =>
+      `<tr>
+        <td>${name}</td>
+        <td class="mono">${val}</td>
+        <td class="mono">${fmt(q)}</td>
+        <td><span class="badge ${out ? 'b-bad' : 'b-ok'}">${out ? 'выброс' : 'норма'}</span></td>
+      </tr>`;
+    $('qBody').innerHTML =
+      row('Минимум (x₁)', res.minVal, res.qMin, res.minOut) +
+      row('Максимум (xₙ)', res.maxVal, res.qMax, res.maxOut);
+
+    $('sortedLine').textContent = 'Сортировка: ' + res.sorted.join(', ');
+
+    // Вывод
+    const v = $('verdict');
+    if(outliers.size === 0){
+      v.className = 'verdict v-ok';
+      v.textContent = 'Выбросов не обнаружено (восстановление стабильное)';
+    } else {
+      v.className = 'verdict v-bad';
+      const parts = [];
+      if(res.minOut) parts.push(`Обнаружен выброс в забеге №${res.minIdx+1} (падение ${res.minVal})`);
+      if(res.maxOut) parts.push(`Обнаружен выброс в забеге №${res.maxIdx+1} (падение ${res.maxVal})`);
+      v.textContent = parts.join('. ') + '. Возможно, в этом забеге вы не восстановились или датчик ошибся';
+    }
+
+    $('dataBody').innerHTML = D.map((d, i) => {
+      const bad = outliers.has(i);
+      return `<tr style="${bad ? 'color:var(--red);font-weight:700' : ''}">
+        <td class="mono">${i+1}</td><td class="mono">${P[i]}</td><td class="mono">${R[i]}</td>
+        <td class="mono" style="${bad ? '' : 'color:var(--lime)'}">${d}</td></tr>`;
+    }).join('');
+
+    requestAnimationFrame(drawChart);
+  }
+
+  /* ---------- График ---------- */
+  function drawChart(){
+    if(!current) return;
+    const cv = $('chart');
+    const dpr = window.devicePixelRatio || 1;
+    const W = cv.clientWidth, H = cv.clientHeight;
+    if(!W) return;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    const {D, outliers} = current;
+    const n = D.length;
+    const padL = 40, padR = 16, padT = 22, padB = 32;
+    const cw = W - padL - padR, ch = H - padT - padB;
+
+    let lo = Math.min(...D), hi = Math.max(...D);
+    let yMin = Math.floor((lo - 4) / 5) * 5;
+    let yMax = Math.ceil((hi + 4) / 5) * 5;
+    if(yMax - yMin < 10) yMax = yMin + 10;
+    const step = (yMax - yMin) > 60 ? 20 : (yMax - yMin) > 30 ? 10 : 5;
+
+    const X = i => padL + (n === 1 ? cw/2 : i * cw / (n - 1));
+    const Y = v => padT + ch - (v - yMin) / (yMax - yMin) * ch;
+
+    // сетка и ось Y
+    ctx.font = '11px ui-monospace, Menlo, monospace';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 1;
+    const startTick = Math.ceil(yMin / step) * step;
+    for(let t = startTick; t <= yMax; t += step){
+      const y = Math.round(Y(t)) + .5;
+      ctx.strokeStyle = '#30343b';
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      ctx.fillStyle = '#9aa2ad';
+      ctx.fillText(t, padL - 6, y);
+    }
+    // ось X
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for(let i = 0; i < n; i++){
+      ctx.fillStyle = '#9aa2ad';
+      ctx.fillText(i + 1, X(i), H - padB + 8);
+    }
+    ctx.strokeStyle = '#4a505a';
+    ctx.beginPath(); ctx.moveTo(padL + .5, padT); ctx.lineTo(padL + .5, padT + ch); ctx.lineTo(W - padR, padT + ch); ctx.stroke();
+
+    // линия
+    ctx.strokeStyle = 'rgba(182,242,58,.65)';
+    ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    D.forEach((d, i) => i ? ctx.lineTo(X(i), Y(d)) : ctx.moveTo(X(i), Y(d)));
+    ctx.stroke();
+
+    // точки
+    D.forEach((d, i) => {
+      const bad = outliers.has(i);
+      const x = X(i), y = Y(d);
+      if(bad){
+        ctx.fillStyle = 'rgba(255,77,79,.25)';
+        ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = bad ? '#ff4d4f' : '#b6f23a';
+      ctx.strokeStyle = '#16181b'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y, bad ? 6.5 : 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+      ctx.font = (bad ? 'bold ' : '') + '11px ui-monospace, Menlo, monospace';
+      ctx.fillStyle = bad ? '#ff8a8c' : '#e5e9ef';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(d, x, y - (bad ? 12 : 9));
+    });
+
+    // подпись оси X
+    ctx.fillStyle = '#6b727c'; ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+    ctx.fillText('№ забега', W - padR, H - 2);
+  }
+
+  window.addEventListener('resize', drawChart);
+  window.addEventListener('orientationchange', () => setTimeout(drawChart, 200));
+
+  renderRuns();
+})();
+</script>
+</body>
+</html>
