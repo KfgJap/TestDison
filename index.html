@@ -12,44 +12,76 @@
     --bg:#16181b; --panel:#202328; --panel2:#2a2e34; --line:#3a3f47;
     --text:#f2f4f7; --muted:#9aa2ad; --lime:#b6f23a; --red:#ff4d4f;
   }
-  *{ -webkit-tap-highlight-color:transparent; box-sizing:border-box; }
-  html,body{ background:var(--bg); color:var(--text); margin:0; }
+  *{ -webkit-tap-highlight-color:transparent; box-sizing:border-box; margin:0; padding:0; }
+  html{ background:#16181b; -webkit-text-size-adjust:100%; text-size-adjust:100%; }
   body{
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    background:var(--bg); color:var(--text); min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Roboto,Arial,sans-serif;
+    font-size:16px; line-height:1.4;
     padding-top:env(safe-area-inset-top);
     padding-left:env(safe-area-inset-left);
     padding-right:env(safe-area-inset-right);
     padding-bottom:calc(env(safe-area-inset-bottom) + 16px);
-    -webkit-text-size-adjust:100%;
+    -webkit-font-smoothing:antialiased;
   }
+  button, input{ font-family:inherit; }
   .wrap{ max-width:520px; margin:0 auto; padding:16px; }
-  .mono{ font-family:ui-monospace,"SF Mono",Menlo,monospace; font-variant-numeric:tabular-nums; }
-  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; }
+  .mono{ font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace; font-variant-numeric:tabular-nums; }
+
+  header{ margin-bottom:16px; }
+  h1{ font-size:24px; font-weight:700; line-height:1.2; margin-top:4px; }
+
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:16px; }
   .label{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .label.mb{ margin-bottom:12px; }
+  .label.mb-s{ margin-bottom:8px; }
+  .label.mb-xs{ margin-bottom:4px; }
+  .hint{ font-size:12px; color:var(--muted); margin-bottom:8px; }
+
+  .counter{ display:flex; align-items:center; justify-content:space-between; }
+  #countVal{ font-size:48px; font-weight:700; color:var(--lime); text-align:center; line-height:1; }
+
   .btn{
-    width:100%; border:0; border-radius:14px; padding:18px; font-size:18px; font-weight:700;
-    background:var(--lime); color:#10130a; transition:transform .1s, opacity .1s;
+    display:block; width:100%; border:0; border-radius:14px; padding:18px; font-size:18px; font-weight:700;
+    background:var(--lime); color:#10130a; cursor:pointer; transition:transform .1s, opacity .1s;
+    -webkit-appearance:none; appearance:none; text-align:center;
   }
   .btn:active{ transform:scale(.98); opacity:.85; }
   .btn-ghost{ background:var(--panel2); color:var(--text); border:1px solid var(--line); font-weight:600; }
+  .btn-demo{ font-size:15px; padding:13px; margin-top:12px; }
+  .btn-back{ margin-top:0; }
+
   .step{
     width:60px; height:60px; border-radius:16px; border:1px solid var(--line);
     background:var(--panel2); color:var(--text); font-size:32px; line-height:1; font-weight:300;
+    cursor:pointer; -webkit-appearance:none; appearance:none; flex:none;
+    display:flex; align-items:center; justify-content:center;
   }
   .step:active{ background:var(--lime); color:#10130a; }
   .step:disabled{ opacity:.3; }
-  .inp{
-    width:100%; height:56px; border-radius:12px; border:2px solid var(--line);
-    background:var(--bg); color:var(--text); font-size:24px; font-weight:600; text-align:center;
-    outline:none; -webkit-appearance:none; appearance:none;
-  }
-  .inp:focus{ border-color:var(--lime); }
-  .inp.bad{ border-color:var(--red); background:rgba(255,77,79,.08); }
-  .inp::placeholder{ color:#555b64; font-weight:400; }
+
+  .cols{ display:flex; align-items:center; gap:12px; padding:0 4px; margin-bottom:8px; }
+  .cols .sp{ width:34px; flex:none; }
+  .cols .col{ flex:1; min-width:0; text-align:center; }
+
+  #runs{ display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+  .run{ display:flex; align-items:center; gap:12px; }
   .run-n{
     width:34px; height:34px; border-radius:50%; background:var(--panel2); color:var(--lime);
     display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex:none;
   }
+  .inp{
+    flex:1; min-width:0; width:100%; height:56px; border-radius:12px; border:2px solid var(--line);
+    background:var(--bg); color:var(--text); font-size:24px; font-weight:600; text-align:center;
+    outline:none; -webkit-appearance:none; appearance:none; padding:0 4px;
+  }
+  .inp:focus{ border-color:var(--lime); }
+  .inp.bad{ border-color:var(--red); background:rgba(255,77,79,.08); }
+  .inp::placeholder{ color:#555b64; font-weight:400; }
+
+  .err{ color:var(--red); font-size:14px; min-height:20px; text-align:center; margin-bottom:8px; }
+  .note{ font-size:12px; text-align:center; color:var(--muted); margin-top:16px; }
+
   table{ width:100%; border-collapse:collapse; font-size:14px; }
   th{ text-align:left; color:var(--muted); font-weight:500; font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:6px 4px; border-bottom:1px solid var(--line); }
   td{ padding:10px 4px; border-bottom:1px solid var(--line); }
@@ -57,85 +89,90 @@
   .badge{ display:inline-block; padding:2px 8px; border-radius:99px; font-size:12px; font-weight:700; }
   .b-ok{ background:rgba(182,242,58,.15); color:var(--lime); }
   .b-bad{ background:rgba(255,77,79,.18); color:var(--red); }
-  .verdict{ border-radius:14px; padding:14px 16px; font-size:16px; line-height:1.4; font-weight:500; }
+
+  .verdict{ border-radius:14px; padding:14px 16px; font-size:16px; line-height:1.4; font-weight:500; margin-bottom:16px; }
   .v-ok{ background:rgba(182,242,58,.1); border:1px solid rgba(182,242,58,.4); color:var(--lime); }
   .v-bad{ background:rgba(255,77,79,.1); border:1px solid rgba(255,77,79,.45); color:#ff8a8c; }
+
   canvas{ width:100%; height:270px; display:block; }
-  .hidden{ display:none; }
-  .err{ color:var(--red); font-size:14px; min-height:20px; }
+  .legend{ display:flex; gap:16px; margin-top:8px; font-size:12px; color:var(--muted); }
+  .legend span{ display:flex; align-items:center; gap:4px; }
+  .legend i{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .qinfo{ font-size:14px; color:var(--muted); margin-bottom:12px; }
+  .qinfo b{ color:var(--text); font-weight:400; }
+  .sorted{ font-size:12px; color:var(--muted); margin-top:12px; word-break:break-word; }
+  .hidden{ display:none !important; }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <header class="mb-4">
+  <header>
     <div class="label">Тест Диксона · p = 0.05</div>
-    <h1 class="text-2xl font-bold mt-1 leading-tight">Анализ восстановления пульса</h1>
+    <h1>Анализ восстановления пульса</h1>
   </header>
 
   <!-- ЭКРАН ВВОДА -->
   <section id="screenInput">
-    <div class="card mb-4">
-      <div class="label mb-3">Количество забегов (3–15)</div>
-      <div class="flex items-center justify-between">
+    <div class="card">
+      <div class="label mb">Количество забегов (3–15)</div>
+      <div class="counter">
         <button id="btnMinus" class="step" aria-label="Меньше">−</button>
-        <div class="text-center">
-          <div id="countVal" class="mono text-5xl font-bold" style="color:var(--lime)">5</div>
-        </div>
+        <div id="countVal" class="mono">5</div>
         <button id="btnPlus" class="step" aria-label="Больше">+</button>
       </div>
     </div>
 
-    <div class="flex px-1 mb-2 gap-3 label">
-      <div style="width:34px"></div>
-      <div class="flex-1 text-center">Пик, уд/мин</div>
-      <div class="flex-1 text-center">Отдых, уд/мин</div>
+    <div class="cols label">
+      <div class="sp"></div>
+      <div class="col">Пик, уд/мин</div>
+      <div class="col">Отдых, уд/мин</div>
     </div>
 
-    <div id="runs" class="flex flex-col gap-2 mb-4"></div>
+    <div id="runs"></div>
 
-    <div id="errBox" class="err mb-2 text-center"></div>
-    <button id="btnAnalyze" class="btn mb-3">Анализировать</button>
-    <button id="btnDemo" class="btn btn-ghost" style="font-size:15px;padding:13px">Заполнить примером</button>
-    <p class="text-xs mt-4 text-center" style="color:var(--muted)">Допустимые значения пульса: от 40 до 250. «Пик» не может быть ниже «Отдыха».</p>
+    <div id="errBox" class="err"></div>
+    <button id="btnAnalyze" class="btn">Анализировать</button>
+    <button id="btnDemo" class="btn btn-ghost btn-demo">Заполнить примером</button>
+    <p class="note">Допустимые значения пульса: от 40 до 250. «Пик» не может быть ниже «Отдыха».</p>
   </section>
 
   <!-- ЭКРАН РЕЗУЛЬТАТОВ -->
   <section id="screenResult" class="hidden">
-    <div class="card mb-4">
-      <div class="label mb-1">Падение пульса по забегам</div>
-      <div class="text-xs mb-2" style="color:var(--muted)">Пик − Отдых, уд/мин. Выше — лучше восстановление.</div>
+    <div class="card">
+      <div class="label mb-xs">Падение пульса по забегам</div>
+      <div class="hint">Пик − Отдых, уд/мин. Выше — лучше восстановление.</div>
       <canvas id="chart"></canvas>
-      <div class="flex gap-4 mt-2 text-xs" style="color:var(--muted)">
-        <span class="flex items-center gap-1"><i style="width:10px;height:10px;border-radius:50%;background:var(--lime);display:inline-block"></i>норма</span>
-        <span class="flex items-center gap-1"><i style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block"></i>выброс</span>
+      <div class="legend">
+        <span><i style="background:#b6f23a"></i>норма</span>
+        <span><i style="background:#ff4d4f"></i>выброс</span>
       </div>
     </div>
 
-    <div id="verdict" class="verdict mb-4"></div>
+    <div id="verdict" class="verdict"></div>
 
-    <div class="card mb-4">
-      <div class="label mb-2">Q-критерий Диксона</div>
-      <div class="text-sm mb-3" style="color:var(--muted)">
-        N = <span id="rN" class="mono" style="color:var(--text)"></span> ·
-        Q<sub>крит</sub> (p=0.05) = <span id="rQc" class="mono" style="color:var(--text)"></span>
+    <div class="card">
+      <div class="label mb-s">Q-критерий Диксона</div>
+      <div class="qinfo">
+        N = <b id="rN" class="mono"></b> ·
+        Q<sub>крит</sub> (p=0.05) = <b id="rQc" class="mono"></b>
       </div>
       <table>
         <thead><tr><th>Проверка</th><th>Значение</th><th>Q</th><th>Итог</th></tr></thead>
         <tbody id="qBody"></tbody>
       </table>
-      <div class="text-xs mt-3 mono" style="color:var(--muted)" id="sortedLine"></div>
+      <div class="sorted mono" id="sortedLine"></div>
     </div>
 
-    <div class="card mb-4">
-      <div class="label mb-2">Данные забегов</div>
+    <div class="card">
+      <div class="label mb-s">Данные забегов</div>
       <table>
         <thead><tr><th>№</th><th>Пик</th><th>Отдых</th><th>Падение</th></tr></thead>
         <tbody id="dataBody"></tbody>
       </table>
     </div>
 
-    <button id="btnBack" class="btn btn-ghost">← Изменить данные</button>
+    <button id="btnBack" class="btn btn-ghost btn-back">← Изменить данные</button>
   </section>
 
 </div>
@@ -159,7 +196,7 @@
     runsEl.innerHTML = '';
     for(let i = 0; i < count; i++){
       const row = document.createElement('div');
-      row.className = 'flex items-center gap-3';
+      row.className = 'run';
       row.innerHTML =
         `<div class="run-n">${i+1}</div>
          <input class="inp mono" data-k="p" data-i="${i}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" placeholder="—" autocomplete="off" aria-label="Пик, забег ${i+1}" value="${peaks[i]}">
@@ -339,7 +376,7 @@
     const Y = v => padT + ch - (v - yMin) / (yMax - yMin) * ch;
 
     // сетка и ось Y
-    ctx.font = '11px ui-monospace, Menlo, monospace';
+    ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
     ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
     ctx.lineWidth = 1;
     const startTick = Math.ceil(yMin / step) * step;
@@ -378,14 +415,14 @@
       ctx.strokeStyle = '#16181b'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(x, y, bad ? 6.5 : 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-      ctx.font = (bad ? 'bold ' : '') + '11px ui-monospace, Menlo, monospace';
+      ctx.font = (bad ? 'bold ' : '') + '11px ui-monospace, Menlo, Consolas, monospace';
       ctx.fillStyle = bad ? '#ff8a8c' : '#e5e9ef';
       ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
       ctx.fillText(d, x, y - (bad ? 12 : 9));
     });
 
     // подпись оси X
-    ctx.fillStyle = '#6b727c'; ctx.font = '10px -apple-system, sans-serif';
+    ctx.fillStyle = '#6b727c'; ctx.font = '10px -apple-system, Roboto, Arial, sans-serif';
     ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
     ctx.fillText('№ забега', W - padR, H - 2);
   }
